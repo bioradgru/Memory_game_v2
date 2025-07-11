@@ -220,8 +220,20 @@
     <script>
         const allCardImages = [
             '🚗', '🍎', '🏠', '🌻', '💡', '📚', '🚀', '🍕', '⚽', '🎸',
-            '🎨', '🔑', '🔔', '🚲', '🍔', '🍟', '🍩', '🍦', '🎈', '🎁' 
-        ]; // 20 verschiedene Emojis
+            '🎨', '🔑', '🔔', '🚲', '🍔', '🍟', '🍩', '🍦', '🎈', '🎁',
+            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
+            '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦉', '🦋',
+            '🐠', '🐢', '🐊', '🐍', '🐲', '🦄', '🐎', '🦌', '🐺', '🐾',
+            '🌳', '🌲', '🌴', '🌵', '🌷', '🌸', '🌹', '🌼', '🌞', '🌛',
+            '🌟', '🌈', '🌧️', '⚡', '🌊', '🌋', '🌎', '🌙', '☄️', '🌌',
+            '⌚', '📱', '💻', '⌨️', '🖱️', '🖨️', '📸', '📹', '🎤', '🎧',
+            '📻', '📺', '📞', '💡', '🗑️', '⏰', '⏳', '💾', '💿', '📀',
+            '🔋', '🔌', '💰', '💸', '💳', '💎', '🔑', '🔓', '🔒', '💡',
+            '⚙️', '🔨', '🔧', '🔩', '🔗', '🛡️', '⚔️', '💣', '🔫', '💊',
+            '💉', '🩸', '🧪', '🔬', '🔭', '📡', '💡', '⚖️', '🔗', '🚨',
+            '🚧', '⛽', '🚥', '🚧', '🚲', '🛵', '🏍️', '🏎️', '🚄', '🚆',
+            '🚇', '🚌', '🚍', '🚕', '🚙', '🚚', '🚢', '✈️', '🚁', '🛸'
+        ]; 
 
         let cardsData = []; 
         let playerPoints = 0;
@@ -276,8 +288,6 @@
 
             const positions = [];
             
-            // Die absoluten Positionen müssen relativ zum cards-grid-container sein.
-            // Die Berechnung erfolgt basierend auf Spalten, Reihen, Kartengröße und Lücken.
             for(let row = 0; row < 2; row++) { 
                 for(let col = 0; col < columns; col++) {
                     const index = row * columns + col;
@@ -290,14 +300,12 @@
                 }
             }
             
-            // Temporären Container verwenden, um die Höhe des Grids korrekt zu messen
             const tempGridContainer = document.createElement('div');
             tempGridContainer.style.display = 'grid';
             tempGridContainer.style.gridTemplateColumns = `repeat(${columns}, ${cardValue}px)`; 
             tempGridContainer.style.gap = `${gap}px`;
             tempGridContainer.style.visibility = 'hidden'; 
             tempGridContainer.style.pointerEvents = 'none'; 
-            // Füge Platzhalter hinzu, um die Höhe des Grids zu simulieren
             for(let i = 0; i < numCards; i++) {
                 const placeholder = document.createElement('div');
                 placeholder.style.width = `${cardValue}px`; 
@@ -370,19 +378,19 @@
             });
 
             // Dynamische Anpassung der Fragezeichen-Größe
-            // Wir suchen die CSS-Regel für .card.faced-down::before und aktualisieren ihre font-size
             const styleSheet = document.styleSheets[0]; 
             let foundRule = false;
             for(let i = 0; i < styleSheet.cssRules.length; i++) {
                 const rule = styleSheet.cssRules[i];
                 if (rule.selectorText === '.card.faced-down::before') {
-                    rule.style.fontSize = `${fontSize * 0.75}em`; // 75% der Karten-Emoji-Größe
+                    // Verwenden Sie eine kleinere relative Größe für das Fragezeichen, z.B. 0.5em
+                    rule.style.fontSize = `${fontSize * 0.5}em`; 
                     foundRule = true;
                     break;
                 }
             }
-            if (!foundRule) { // Fallback, falls Regel noch nicht existiert (sehr unwahrscheinlich)
-                styleSheet.insertRule(`.card.faced-down::before { font-size: ${fontSize * 0.75}em; }`, styleSheet.cssRules.length);
+            if (!foundRule) { 
+                styleSheet.insertRule(`.card.faced-down::before { font-size: ${fontSize * 0.5}em; }`, styleSheet.cssRules.length);
             }
 
             cardsData.forEach(cardData => {
