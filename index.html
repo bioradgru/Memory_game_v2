@@ -190,8 +190,11 @@
                     <label for="cardCountSelect">Anzahl der Karten:</label>
                     <select id="cardCountSelect">
                         <option value="4">4 Karten</option>
+                        <option value="5">5 Karten</option>
                         <option value="6" selected>6 Karten</option>
+                        <option value="7">7 Karten</option>
                         <option value="8">8 Karten</option>
+                        <option value="9">9 Karten</option>
                     </select>
                 </div>
                 <div class="settings-row">
@@ -266,19 +269,37 @@
                 cardSize = 80;
                 fontSize = 3;
                 gap = 10; 
+            } else if (numCards === 9) { // Kleinere Karten für 3x3
+                cardSize = 70;
+                fontSize = 2.5;
+                gap = 8;
+            } else if (numCards === 5 || numCards === 7) { // Angepasste Größe für ungerade Zahlen
+                 cardSize = 85;
+                 fontSize = 3.2;
+                 gap = 12;
             }
             return { cardValue: cardSize, fontSize, gap }; 
         }
 
         function getGridCellInfo(numCards) {
             let columns;
-            
+            let rows = 2; // Standardmäßig 2 Reihen
+
             if (numCards === 4) {
                 columns = 2; 
+            } else if (numCards === 5) {
+                columns = 3; // 2 Karten in erster Reihe, 3 in zweiter (oder umgekehrt)
+                rows = 2;
             } else if (numCards === 6) {
                 columns = 3; 
+            } else if (numCards === 7) {
+                columns = 4; // 3 Karten in erster Reihe, 4 in zweiter (oder umgekehrt)
+                rows = 2;
             } else if (numCards === 8) {
                 columns = 4; 
+            } else if (numCards === 9) {
+                columns = 3; // 3x3 Grid
+                rows = 3;
             }
             
             const { cardValue, gap } = getCardStyling(numCards);
@@ -288,33 +309,58 @@
 
             const positions = [];
             
-            for(let row = 0; row < 2; row++) { 
-                for(let col = 0; col < columns; col++) {
-                    const index = row * columns + col;
-                    if (index < numCards) {
-                        positions.push({
-                            left: col * (cardValue + gap),
-                            top: row * (cardValue + gap)
-                        });
+            // Logik für ungerade Kartenzahlen und 3x3 Grid
+            if (numCards === 5) {
+                // 3 Karten in erster Reihe, 2 in zweiter (zentriert)
+                const row1_cols = 3;
+                const row2_cols = 2;
+                const totalGridWidth = (row1_cols * cardValue) + ((row1_cols - 1) * gap);
+                const offsetRow2 = (totalGridWidth - (row2_cols * cardValue) - ((row2_cols - 1) * gap)) / 2;
+
+                for (let col = 0; col < row1_cols; col++) {
+                    positions.push({ left: col * (cardValue + gap), top: 0 });
+                }
+                for (let col = 0; col < row2_cols; col++) {
+                    positions.push({ left: offsetRow2 + col * (cardValue + gap), top: cardValue + gap });
+                }
+            } else if (numCards === 7) {
+                // 4 Karten in erster Reihe, 3 in zweiter (zentriert)
+                const row1_cols = 4;
+                const row2_cols = 3;
+                const totalGridWidth = (row1_cols * cardValue) + ((row1_cols - 1) * gap);
+                const offsetRow2 = (totalGridWidth - (row2_cols * cardValue) - ((row2_cols - 1) * gap)) / 2;
+
+                for (let col = 0; col < row1_cols; col++) {
+                    positions.push({ left: col * (cardValue + gap), top: 0 });
+                }
+                for (let col = 0; col < row2_cols; col++) {
+                    positions.push({ left: offsetRow2 + col * (cardValue + gap), top: cardValue + gap });
+                }
+            } else { // Standard 2-Reihen oder 3x3 Grid
+                for(let row = 0; row < rows; row++) { 
+                    for(let col = 0; col < columns; col++) {
+                        const index = row * columns + col;
+                        if (index < numCards) {
+                            positions.push({
+                                left: col * (cardValue + gap),
+                                top: row * (cardValue + gap)
+                            });
+                        }
                     }
                 }
             }
             
-            const tempGridContainer = document.createElement('div');
-            tempGridContainer.style.display = 'grid';
-            tempGridContainer.style.gridTemplateColumns = `repeat(${columns}, ${cardValue}px)`; 
-            tempGridContainer.style.gap = `${gap}px`;
-            tempGridContainer.style.visibility = 'hidden'; 
-            tempGridContainer.style.pointerEvents = 'none'; 
-            for(let i = 0; i < numCards; i++) {
-                const placeholder = document.createElement('div');
-                placeholder.style.width = `${cardValue}px`; 
-                placeholder.style.height = `${cardValue}px`; 
-                tempGridContainer.appendChild(placeholder);
+            // Berechnung der Grid-Höhe basierend auf der tatsächlichen Anzahl der Reihen
+            let actualRows = Math.ceil(numCards / columns);
+            if (numCards === 5 || numCards === 7) { // Bei ungeraden Zahlen sind es immer 2 Reihen
+                actualRows = 2;
+            } else if (numCards === 9) { // Bei 9 Karten sind es 3 Reihen
+                actualRows = 3;
             }
-            document.body.appendChild(tempGridContainer); 
-            const gridHeight = tempGridContainer.offsetHeight;
-            document.body.removeChild(tempGridContainer); 
+
+
+            const gridHeight = (actualRows * cardValue) + ((actualRows - 1) * gap);
+
 
             return { positions, gridHeight, cardValue, fontSize: getCardStyling(numCards).fontSize, gap }; 
         }
@@ -342,7 +388,7 @@
             startButton.disabled = false; 
             gearButton.disabled = false; 
 
-            cardsGridContainer.innerHTML = ''; 
+            cardsGridContainer.innerHTML = ''; // Alle alten Karten entfernen (macht sie unsichtbar)
             
             const shuffledAllImages = shuffleArray([...allCardImages]); 
             const imagesForGame = shuffledAllImages.slice(0, selectedCardCount); 
@@ -354,7 +400,8 @@
 
             shuffledGameImages.forEach((image, index) => { 
                 const cardEl = document.createElement('div');
-                cardEl.classList.add('card', 'visible', 'faced-up'); 
+                // Initial nur 'card' hinzufügen, 'visible' und 'faced-up' später mit Verzögerung
+                cardEl.classList.add('card'); 
                 
                 cardEl.style.width = `${cardValue}px`; 
                 cardEl.style.height = `${cardValue}px`; 
@@ -383,7 +430,6 @@
             for(let i = 0; i < styleSheet.cssRules.length; i++) {
                 const rule = styleSheet.cssRules[i];
                 if (rule.selectorText === '.card.faced-down::before') {
-                    // Verwenden Sie eine kleinere relative Größe für das Fragezeichen, z.B. 0.5em
                     rule.style.fontSize = `${fontSize * 0.5}em`; 
                     foundRule = true;
                     break;
@@ -396,6 +442,13 @@
             cardsData.forEach(cardData => {
                 cardData.element.onclick = null;
                 cardData.element.style.cursor = 'default';
+            });
+            
+            // Karten nach einer halben Sekunde Verzögerung (500ms) und dann gestaffelt einblenden
+            cardsData.forEach((cardData, index) => {
+                setTimeout(() => {
+                    cardData.element.classList.add('visible', 'faced-up');
+                }, 500 + (index * 50)); // 500ms Basisverzögerung + 50ms pro Karte (für gestaffelten Effekt)
             });
         }
 
